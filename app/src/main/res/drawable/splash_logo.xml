@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Background circle -->
+    <path
+        android:fillColor="#3DDC84"
+        android:pathData="M0,0h108v108h-108z" />
+    
+    <!-- Simple logo icon - centered circle with letter -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20a34,34 0 1,0 0,68 34,34 0 1,0 0,-68z" />
+    
+    <!-- Letter "B" for BDE -->
+    <path
+        android:fillColor="#3DDC84"
+        android:pathData="M44,40h8c4,0 7,3 7,7 0,2 -1,4 -2,5 1,1 3,3 3,6 0,4 -3,7 -7,7h-9z M48,44v6h4c2,0 3,-1 3,-3s-1,-3 -3,-3z M48,54v7h5c2,0 4,-2 4,-4s-2,-3 -4,-3z" />
+</vector>
