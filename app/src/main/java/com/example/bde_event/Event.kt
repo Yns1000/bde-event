@@ -1,7 +1,9 @@
+// kotlin
 package com.example.bde_event
 
 data class Event(
-    val nom: String,
-    val date: String,
-    val lieu: String
+    val id: Int,
+    val title: String,
+    val time: String,
+    val location: String? = null
 )
