@@ -5,13 +5,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.bde_event.ui.components.AddEventScreen
 import com.example.bde_event.ui.components.FilterBarMobile
 import com.example.bde_event.ui.components.WeeklySchedule
 import com.example.bde_event.ui.theme.BdeeventTheme
@@ -25,23 +27,41 @@ class MainActivity : ComponentActivity() {
             BdeeventTheme {
                 val viewModel: MainViewModel = viewModel()
 
-                // On prépare la structure de la page
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                // Si on est en mode "Ajout", on affiche le formulaire PLEIN ÉCRAN
+                if (viewModel.isAddingEvent) {
+                    AddEventScreen(
+                        onSave = { event -> viewModel.addEvent(event) },
+                        onCancel = { viewModel.isAddingEvent = false }
+                    )
+                } else {
+                    // Sinon, on affiche l'écran normal avec le FAB
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        floatingActionButton = {
+                            FloatingActionButton(
+                                onClick = { viewModel.isAddingEvent = true },
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Ajouter événement")
+                            }
+                        }
+                    ) { innerPadding ->
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding)
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
 
-                        // Titre
-                        Text(
-                            text = "Événements de la semaine",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                        Divider()
+                            Text(
+                                text = "Événements de la semaine",
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
+                            )
+
+                            Divider()
 
                         // Barre de filtres (connectée au ViewModel)
                         FilterBarMobile(
@@ -62,11 +82,11 @@ class MainActivity : ComponentActivity() {
                             onClearFilters = { viewModel.clearFilters() } // CONNEXION DE LA NOUVELLE FONCTION
                         )
 
-                        // Liste des événements filtrés
-                        WeeklySchedule(
-                            week = viewModel.filteredEvents,
-                            modifier = Modifier.weight(1f)
-                        )
+                            WeeklySchedule(
+                                week = viewModel.filteredEvents,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
             }
