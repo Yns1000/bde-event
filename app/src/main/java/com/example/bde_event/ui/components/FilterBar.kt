@@ -10,18 +10,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.ZoneOffset // Import pour la correction
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
-import java.util.concurrent.TimeUnit
+// java.util.concurrent.TimeUnit n'est plus nécessaire
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FilterBarMobile(
+fun FilterContent( // Renommé de FilterBarMobile
     days: List<String>,
     types: List<String>,
     query: String,
@@ -34,9 +35,8 @@ fun FilterBarMobile(
     onEndDateChanged: (String) -> Unit,
     selectedType: String,
     onTypeSelected: (String) -> Unit,
-    filtersVisible: Boolean,
-    onToggleFilters: () -> Unit,
-    onClearFilters: () -> Unit
+    onClearFilters: () -> Unit,
+    onCloseDrawer: () -> Unit // Fonction pour fermer la feuille modale/drawer
 ) {
     var typeExpanded by remember { mutableStateOf(false) }
 
@@ -49,14 +49,13 @@ fun FilterBarMobile(
         query.isNotBlank() || selectedType != "Tous" || startDateStr.isNotBlank() || endDateStr.isNotBlank()
     }
 
-    // FONCTION UTILITAIRE POUR CONVERTIR "AAAA-MM-JJ" EN MILLISECONDES (CORRIGÉE)
+    // FONCTION UTILITAIRE POUR CONVERTIR "AAAA-MM-JJ" EN MILLISECONDES
     fun dateToMillis(dateStr: String): Long? {
         if (dateStr.isBlank()) return null
         return try {
-            // Utilise l'offset UTC pour garantir que la date sélectionnée est à minuit UTC
             LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
                 .atStartOfDay()
-                .toInstant(ZoneOffset.UTC) // CORRECTION APPLIQUÉE ICI
+                .toInstant(ZoneOffset.UTC)
                 .toEpochMilli()
         } catch (e: DateTimeParseException) {
             null
@@ -64,19 +63,20 @@ fun FilterBarMobile(
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp) // Ajout de padding horizontal
+            .padding(top = 16.dp, bottom = 32.dp), // Padding en haut et en bas pour le BottomSheet
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
-        // Toggle Bouton (toujours en haut à droite)
-        TextButton(
-            onClick = onToggleFilters,
-            modifier = Modifier.align(Alignment.End)
-        ) {
-            Text(if (filtersVisible) "Masquer les filtres" else "Afficher les filtres")
-        }
-
-        if (!filtersVisible) return@Column
+        // Header du filtre
+        Text(
+            text = "Filtrer les événements",
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.align(Alignment.Start)
+        )
+        HorizontalDivider()
 
         // 1. Recherche
         OutlinedTextField(
@@ -163,15 +163,20 @@ fun FilterBarMobile(
             }
         }
 
-        // BOUTON EFFACER LES FILTRES (en bas et centré)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // BOUTON EFFACER LES FILTRES (et fermer le drawer)
         Button(
-            onClick = onClearFilters,
+            // Ajout de onCloseDrawer pour fermer automatiquement
+            onClick = {
+                onClearFilters()
+                onCloseDrawer()
+            },
             enabled = isFilterActive,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
         ) {
-            Text("Effacer les filtres")
+            Text("Effacer et fermer les filtres")
         }
     }
 
@@ -202,7 +207,7 @@ fun FilterBarMobile(
     }
 }
 
-// Composant utilitaire pour le Calendrier
+// Composant utilitaire pour le Calendrier (inchangé)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDatePickerDialog(
