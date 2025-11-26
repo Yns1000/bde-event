@@ -39,7 +39,9 @@ fun LoginScreen(navController: NavController) {
             value = username,
             onValueChange = { username = it },
             label = { Text("Identifiant") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            maxLines = 1
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -49,7 +51,9 @@ fun LoginScreen(navController: NavController) {
             onValueChange = { password = it },
             label = { Text("Mot de passe") },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            maxLines = 1
         )
 
         Spacer(modifier = Modifier.height(32.dp))
