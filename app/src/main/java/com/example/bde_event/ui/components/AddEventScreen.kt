@@ -28,6 +28,8 @@ fun AddEventScreen(
     var location by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("Réunion") }
 
+    var description by remember { mutableStateOf("") }
+
     // Dates et Heures
     var dateStr by remember { mutableStateOf("") }
     var startTimeStr by remember { mutableStateOf("") }
@@ -122,12 +124,11 @@ fun AddEventScreen(
                 }
             )
 
-            // 5. Heures (Début et Fin sur la même ligne)
+            // 5. Heures
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Heure Début
                 OutlinedTextField(
                     value = startTimeStr,
                     onValueChange = {},
@@ -145,7 +146,6 @@ fun AddEventScreen(
                     }
                 )
 
-                // Heure Fin
                 OutlinedTextField(
                     value = endTimeStr,
                     onValueChange = {},
@@ -164,6 +164,16 @@ fun AddEventScreen(
                 )
             }
 
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                placeholder = { Text("Description (optionnel)") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3, // On permet plusieurs lignes
+                maxLines = 5,
+                shape = RoundedCornerShape(16.dp)
+            )
+
             Spacer(modifier = Modifier.weight(1f))
 
             // Bouton Valider
@@ -172,8 +182,6 @@ fun AddEventScreen(
                     if (title.isNotBlank() && dateStr.isNotBlank() && startTimeStr.isNotBlank() && endTimeStr.isNotBlank()) {
                         try {
                             val date = LocalDate.parse(dateStr)
-
-                            // On crée la string "14:00 - 16:00" pour respecter ton format Event actuel
                             val formattedTime = "$startTimeStr - $endTimeStr"
 
                             val newEvent = Event(
@@ -183,7 +191,8 @@ fun AddEventScreen(
                                 endDate = date,
                                 time = formattedTime,
                                 location = location,
-                                type = type
+                                type = type,
+                                description = description
                             )
                             onSave(newEvent)
                         } catch (e: Exception) {
@@ -200,7 +209,6 @@ fun AddEventScreen(
     }
 
     // --- DIALOGUES ---
-
     if (showDatePicker) {
         MyDatePickerDialog(
             onDateSelected = { d -> dateStr = d ?: ""; showDatePicker = false },
@@ -225,7 +233,7 @@ fun AddEventScreen(
     }
 }
 
-// Nouveau composant réutilisable pour l'heure
+// ... Ton composant MyTimePickerDialog reste en bas, inchangé ...
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyTimePickerDialog(

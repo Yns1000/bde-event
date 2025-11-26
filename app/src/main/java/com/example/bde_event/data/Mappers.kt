@@ -29,6 +29,7 @@ fun EventDto.toDomain(): Event {
         endDate = parsedDate,        // On met la même date par défaut
         time = this.duration,        // On affiche la durée (ex: "02:00")
         location = this.location ?: "Lieu à définir",
-        type = typeName
+        type = typeName,
+        description = this.description
     )
 }

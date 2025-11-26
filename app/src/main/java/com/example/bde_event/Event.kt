@@ -9,5 +9,6 @@ data class Event(
     val endDate: LocalDate,
     val time: String,
     val location: String?,
-    val type: String
+    val type: String,
+    val description: String?
 )
