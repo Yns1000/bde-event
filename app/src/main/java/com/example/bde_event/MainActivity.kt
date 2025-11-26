@@ -1,6 +1,6 @@
 package com.example.bde_event
 
-import EventsScreen
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.bde_event.ui.screens.EventsScreen
 import com.example.bde_event.ui.theme.BdeeventTheme
 import com.example.bde_event.ui.screens.LoginScreen // Assurez-vous d'importer votre nouvel écran
 // Importez EventsScreen s'il est dans un autre fichier
