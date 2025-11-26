@@ -8,7 +8,6 @@ import java.time.LocalDate
 
 class MainViewModel : ViewModel() {
 
-    // ✅ 1. ON DÉFINIT LES DONNÉES ICI (C'est le "sampleWeek" qui manquait)
     private val sampleWeek: Map<String, List<Event>> = mapOf(
         "Lundi" to listOf(
             Event(1, "Entraînnement Basket", LocalDate.of(2025,11,10), LocalDate.of(2025,11,10),"18:00 - 20:00","Gymnase A","Sport"),
@@ -30,7 +29,7 @@ class MainViewModel : ViewModel() {
         "Dimanche" to emptyList()
     )
 
-    // ✅ 2. VARIABLES D'ÉTAT (Pour les filtres)
+    // VARIABLES D'ÉTAT (Pour les filtres)
     var searchQuery by mutableStateOf("")
     var selectedType by mutableStateOf("Tous")
     var startDateStr by mutableStateOf("")
@@ -45,7 +44,6 @@ class MainViewModel : ViewModel() {
             val endFilter = try { if (endDateStr.isBlank()) null else LocalDate.parse(endDateStr) } catch (_: Exception) { null }
             val lowerQuery = searchQuery.lowercase()
 
-            // On parcourt la map "sampleWeek" définie juste au-dessus
             return sampleWeek.mapValues { (_, list) ->
                 list.filter { ev ->
                     // Filtre par Type
@@ -60,7 +58,6 @@ class MainViewModel : ViewModel() {
                     }
 
                     // Filtre par Texte (Titre ou Lieu)
-                    // C'est ici que tu avais l'erreur 'title'/'location' car 'ev' n'était pas reconnu
                     val textOk = lowerQuery.isEmpty() ||
                             ev.title.lowercase().contains(lowerQuery) ||
                             (ev.location?.lowercase()?.contains(lowerQuery) ?: false)

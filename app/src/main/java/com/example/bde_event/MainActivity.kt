@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -22,7 +23,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             BdeeventTheme {
-                // On récupère le ViewModel créé à l'étape 2
                 val viewModel: MainViewModel = viewModel()
 
                 // On prépare la structure de la page
@@ -45,11 +45,11 @@ class MainActivity : ComponentActivity() {
 
                         // Barre de filtres (connectée au ViewModel)
                         FilterBarMobile(
-                            days = listOf("Tous"), // Tu pourras rajouter les jours dynamiquement plus tard
+                            days = listOf("Tous"),
                             types = listOf("Tous", "Sport", "Réunion", "Culture", "Forum", "Tournoi", "Atelier"),
                             query = viewModel.searchQuery,
                             onQueryChanged = { viewModel.searchQuery = it },
-                            selectedDay = "Tous", // Simplification pour l'instant
+                            selectedDay = "Tous",
                             onDaySelected = { },
                             startDateStr = viewModel.startDateStr,
                             onStartDateChanged = { viewModel.startDateStr = it },
@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
                             onEndDateChanged = { viewModel.endDateStr = it },
                             selectedType = viewModel.selectedType,
                             onTypeSelected = { viewModel.selectedType = it },
-                            filtersVisible = viewModel.filtersVisible, // Ajoute "var filtersVisible" dans ton ViewModel si ce n'est pas fait !
+                            filtersVisible = viewModel.filtersVisible,
                             onToggleFilters = { viewModel.filtersVisible = !viewModel.filtersVisible }
                         )
 

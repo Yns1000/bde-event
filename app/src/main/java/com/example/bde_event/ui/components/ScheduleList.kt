@@ -27,8 +27,6 @@ fun WeeklySchedule(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(week.entries.toList()) { entry ->
-                // On affiche la section seulement s'il y a des événements (optionnel)
-                // ou on garde ton comportement actuel :
                 DaySection(entry.key, entry.value)
             }
         }
@@ -57,7 +55,7 @@ fun DaySection(day: String, events: List<Event>) {
         if (events.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 events.forEach { event ->
-                    EventCard(event) // On utilise le composant qu'on a créé au point 3
+                    EventCard(event)
                 }
             }
         }

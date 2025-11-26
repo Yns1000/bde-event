@@ -107,7 +107,6 @@ fun FilterBarMobile(
             )
         }
 
-        // 3. Type (Menu Déroulant Corrigé)
         ExposedDropdownMenuBox(
             expanded = typeExpanded,
             onExpandedChange = { typeExpanded = !typeExpanded }
@@ -120,7 +119,7 @@ fun FilterBarMobile(
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .menuAnchor(), // ⚠️ C'EST CETTE LIGNE QUI RÉPARE LE CLIC
+                    .menuAnchor(),
                 shape = RoundedCornerShape(16.dp)
             )
 
