@@ -6,42 +6,47 @@ import kotlinx.coroutines.delay
 
 class EventRepository {
 
-    // --- SIMULATION DE LA BDD (Ce que l'API NestJS renverra) ---
+    // --- SIMULATION DE LA BDD ---
     private val fakeDatabase = mutableListOf(
         EventDto(
             id = 1,
             name = "Match de Basket",
-            date = "2025-11-10",
+            date = "2025-11-10T18:00:00",
             duration = "02:00",
             description = "Tournoi inter-promo",
             location = "Gymnase A",
-            idType = 1, // Sport
+            idType = 1,
             idUser = 10
         ),
         EventDto(
             id = 2,
             name = "Réunion BDE",
-            date = "2025-11-12",
+            date = "2025-11-10T20:30:00",
             duration = "01:00",
-            description = "Préparation soirée d'intégration",
+            description = "Préparation soirée",
             location = "Salle 101",
-            idType = 2, // Réunion
+            idType = 2,
             idUser = 12
         )
     )
 
     // Récupérer les événements
     suspend fun getAllEvents(): List<Event> {
-        delay(500) // On simule un petit temps de chargement réseau
-        // On transforme les DTOs (BDD) en Events (App) grâce au Mapper
+        delay(500) // Simulation réseau
+        // BDD -> APP
         return fakeDatabase.map { it.toDomain() }
     }
 
     // Ajouter un événement
     suspend fun addEvent(event: Event): Boolean {
-        delay(500)
-        // Inversement : on devrait transformer l'Event en DTO pour l'envoyer
-        // Ici on fait simple pour la simulation
+        delay(500) // Simulation réseau
+
+        // 1. On transforme l'Event (App) en EventDto (BDD)
+        val eventDto = event.toDto()
+
+        // 2. On l'ajoute à la fausse liste (Simulation du POST)
+        fakeDatabase.add(eventDto)
+
         return true
     }
 }
