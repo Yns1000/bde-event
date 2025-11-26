@@ -18,13 +18,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.bde_event.ui.components.FilterBarMobile
+import com.example.bde_event.ui.components.WeeklySchedule
 
 // Si automirrored n'est pas trouvé: import androidx.compose.material.icons.filled.ExitToApp
 
 // Dans EventsScreen.kt ou en bas de MainActivity.kt
 @Composable
 fun EventsScreen(onLogout: () -> Unit) {
-    val viewModel: MainViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val viewModel: MainViewModel = viewModel()
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -57,7 +60,7 @@ fun EventsScreen(onLogout: () -> Unit) {
             HorizontalDivider()
 
             // Barre de filtres
-            com.example.bde_event.ui.components.FilterBarMobile(
+            FilterBarMobile(
                 days = listOf("Tous"),
                 types = listOf("Tous", "Sport", "Réunion", "Culture", "Forum", "Tournoi", "Atelier"),
                 query = viewModel.searchQuery,
@@ -71,11 +74,12 @@ fun EventsScreen(onLogout: () -> Unit) {
                 selectedType = viewModel.selectedType,
                 onTypeSelected = { viewModel.selectedType = it },
                 filtersVisible = viewModel.filtersVisible,
-                onToggleFilters = { viewModel.filtersVisible = !viewModel.filtersVisible }
+                onToggleFilters = { viewModel.filtersVisible = !viewModel.filtersVisible },
+                onClearFilters = { viewModel.clearFilters() }
             )
 
             // Liste des événements
-            com.example.bde_event.ui.components.WeeklySchedule(
+            WeeklySchedule(
                 week = viewModel.filteredEvents,
                 modifier = Modifier.weight(1f)
             )

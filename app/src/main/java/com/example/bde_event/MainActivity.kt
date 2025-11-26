@@ -1,6 +1,6 @@
 package com.example.bde_event
 
-
+import EventsScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,7 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.bde_event.ui.theme.BdeeventTheme
 import com.example.bde_event.ui.screens.LoginScreen // Assurez-vous d'importer votre nouvel écran
-import EventsScreen
+// Importez EventsScreen s'il est dans un autre fichier
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,24 +26,10 @@ class MainActivity : ComponentActivity() {
                 // On définit les routes de navigation
                 NavHost(navController = navController, startDestination = "login_screen") {
 
-                        // Barre de filtres (connectée au ViewModel)
-                        FilterBarMobile(
-                            days = listOf("Tous"),
-                            types = listOf("Tous", "Sport", "Réunion", "Culture", "Forum", "Tournoi", "Atelier"),
-                            query = viewModel.searchQuery,
-                            onQueryChanged = { viewModel.searchQuery = it },
-                            selectedDay = "Tous",
-                            onDaySelected = { },
-                            startDateStr = viewModel.startDateStr,
-                            onStartDateChanged = { viewModel.startDateStr = it },
-                            endDateStr = viewModel.endDateStr,
-                            onEndDateChanged = { viewModel.endDateStr = it },
-                            selectedType = viewModel.selectedType,
-                            onTypeSelected = { viewModel.selectedType = it },
-                            filtersVisible = viewModel.filtersVisible,
-                            onToggleFilters = { viewModel.filtersVisible = !viewModel.filtersVisible },
-                            onClearFilters = { viewModel.clearFilters() } // CONNEXION DE LA NOUVELLE FONCTION
-                        )
+                    // Route pour l'écran de connexion
+                    composable("login_screen") {
+                        LoginScreen(navController = navController)
+                    }
 
                     // Route pour l'écran principal (événements)
                     composable("events_screen") {
