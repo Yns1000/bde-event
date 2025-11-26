@@ -8,6 +8,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.example.bde_event.R // Important pour accéder à R.drawable
 
 @Composable
 fun LoginScreen(navController: NavController) {
@@ -21,6 +24,13 @@ fun LoginScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Image(
+            painter = painterResource(id = R.drawable.academia_icon), // Remplacez par le nom exact de votre fichier
+            contentDescription = "Logo Academia",
+            modifier = Modifier
+                .size(120.dp) // Ajustez la taille selon vos besoins
+                .padding(bottom = 16.dp)
+        )
         Text(text = "Bienvenue !", style = MaterialTheme.typography.headlineMedium)
 
         Spacer(modifier = Modifier.height(32.dp))
