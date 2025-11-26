@@ -33,7 +33,15 @@ class MainActivity : ComponentActivity() {
 
                     // Route pour l'écran principal (événements)
                     composable("events_screen") {
-                        EventsScreen()
+                        EventsScreen(
+                            onLogout = {
+                                // On navigue vers le login
+                                navController.navigate("login_screen") {
+                                    // On vide la pile de navigation pour qu'un "Retour" ne ramène pas à la page principale
+                                    popUpTo("events_screen") { inclusive = true }
+                                }
+                            }
+                        )
                     }
                 }
             }
