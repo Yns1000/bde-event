@@ -1,20 +1,17 @@
 package com.example.bde_event
 
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.bde_event.ui.components.FilterBarMobile
-import com.example.bde_event.ui.components.WeeklySchedule
+import androidx.compose.runtime.Composable
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.bde_event.ui.theme.BdeeventTheme
+import com.example.bde_event.ui.screens.LoginScreen // Assurez-vous d'importer votre nouvel écran
+import EventsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,49 +20,20 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             BdeeventTheme {
-                val viewModel: MainViewModel = viewModel()
+                // On crée le contrôleur de navigation
+                val navController = rememberNavController()
 
-                // On prépare la structure de la page
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                // On définit les routes de navigation
+                NavHost(navController = navController, startDestination = "login_screen") {
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
+                    // Route pour l'écran de connexion
+                    composable("login_screen") {
+                        LoginScreen(navController = navController)
+                    }
 
-                        // Titre
-                        Text(
-                            text = "Événements de la semaine",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                        Divider()
-
-                        // Barre de filtres (connectée au ViewModel)
-                        FilterBarMobile(
-                            days = listOf("Tous"),
-                            types = listOf("Tous", "Sport", "Réunion", "Culture", "Forum", "Tournoi", "Atelier"),
-                            query = viewModel.searchQuery,
-                            onQueryChanged = { viewModel.searchQuery = it },
-                            selectedDay = "Tous",
-                            onDaySelected = { },
-                            startDateStr = viewModel.startDateStr,
-                            onStartDateChanged = { viewModel.startDateStr = it },
-                            endDateStr = viewModel.endDateStr,
-                            onEndDateChanged = { viewModel.endDateStr = it },
-                            selectedType = viewModel.selectedType,
-                            onTypeSelected = { viewModel.selectedType = it },
-                            filtersVisible = viewModel.filtersVisible,
-                            onToggleFilters = { viewModel.filtersVisible = !viewModel.filtersVisible }
-                        )
-
-                        // Liste des événements filtrés
-                        WeeklySchedule(
-                            week = viewModel.filteredEvents,
-                            modifier = Modifier.weight(1f)
-                        )
+                    // Route pour l'écran principal (événements)
+                    composable("events_screen") {
+                        EventsScreen()
                     }
                 }
             }
