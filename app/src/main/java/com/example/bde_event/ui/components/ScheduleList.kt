@@ -16,7 +16,9 @@ fun WeeklySchedule(
     week: Map<String, List<Event>>,
     modifier: Modifier = Modifier
 ) {
-    if (week.values.all { it.isEmpty() }) {
+    val daysWithEvents = week.filterValues { it.isNotEmpty() }
+
+    if (daysWithEvents.isEmpty()) {
         Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Aucun événement trouvé", style = MaterialTheme.typography.bodyLarge)
         }
@@ -26,7 +28,7 @@ fun WeeklySchedule(
             contentPadding = PaddingValues(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(week.entries.toList()) { entry ->
+            items(daysWithEvents.entries.toList()) { entry ->
                 DaySection(entry.key, entry.value)
             }
         }
@@ -46,17 +48,15 @@ fun DaySection(day: String, events: List<Event>) {
                 modifier = Modifier.weight(1f)
             )
             Text(
-                text = if (events.isEmpty()) "Aucun" else "${events.size}",
+                text = "${events.size}",
                 style = MaterialTheme.typography.bodySmall
             )
         }
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        if (events.isNotEmpty()) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                events.forEach { event ->
-                    EventCard(event)
-                }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            events.forEach { event ->
+                EventCard(event)
             }
         }
     }
