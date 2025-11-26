@@ -43,6 +43,7 @@ class MainViewModel : ViewModel() {
         endDateStr = ""
         // Note: filtersVisible n'est pas réinitialisé ici, car l'utilisateur veut souvent les garder visibles après un clear
     }
+
     // 4. Logique de filtrage (basée sur la map mutable)
     val filteredEvents: Map<String, List<Event>>
         get() {

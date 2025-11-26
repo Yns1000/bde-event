@@ -63,24 +63,23 @@ class MainActivity : ComponentActivity() {
 
                             Divider()
 
-                        // Barre de filtres (connectée au ViewModel)
-                        FilterBarMobile(
-                            days = listOf("Tous"),
-                            types = listOf("Tous", "Sport", "Réunion", "Culture", "Forum", "Tournoi", "Atelier"),
-                            query = viewModel.searchQuery,
-                            onQueryChanged = { viewModel.searchQuery = it },
-                            selectedDay = "Tous",
-                            onDaySelected = { },
-                            startDateStr = viewModel.startDateStr,
-                            onStartDateChanged = { viewModel.startDateStr = it },
-                            endDateStr = viewModel.endDateStr,
-                            onEndDateChanged = { viewModel.endDateStr = it },
-                            selectedType = viewModel.selectedType,
-                            onTypeSelected = { viewModel.selectedType = it },
-                            filtersVisible = viewModel.filtersVisible,
-                            onToggleFilters = { viewModel.filtersVisible = !viewModel.filtersVisible },
-                            onClearFilters = { viewModel.clearFilters() } // CONNEXION DE LA NOUVELLE FONCTION
-                        )
+                            FilterBarMobile(
+                                days = listOf("Tous"),
+                                types = listOf("Tous", "Sport", "Réunion", "Culture", "Forum", "Tournoi", "Atelier"),
+                                query = viewModel.searchQuery,
+                                onQueryChanged = { viewModel.searchQuery = it },
+                                selectedDay = "Tous",
+                                onDaySelected = { },
+                                startDateStr = viewModel.startDateStr,
+                                onStartDateChanged = { viewModel.startDateStr = it },
+                                endDateStr = viewModel.endDateStr,
+                                onEndDateChanged = { viewModel.endDateStr = it },
+                                selectedType = viewModel.selectedType,
+                                onTypeSelected = { viewModel.selectedType = it },
+                                filtersVisible = viewModel.filtersVisible,
+                                onToggleFilters = { viewModel.filtersVisible = !viewModel.filtersVisible },
+                                onClearFilters = { viewModel.clearFilters() } // CONNEXION DE LA NOUVELLE FONCTION
+                            )
 
                             WeeklySchedule(
                                 week = viewModel.filteredEvents,
