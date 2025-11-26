@@ -8,9 +8,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -22,33 +24,25 @@ import com.example.bde_event.R
 import com.example.bde_event.ui.components.AddEventScreen
 import com.example.bde_event.ui.components.FilterContent
 import com.example.bde_event.ui.components.WeeklySchedule
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EventsScreen(onLogout: () -> Unit) {
+fun EventsScreen(
+    onLogout: () -> Unit,
+    darkTheme: Boolean,
+    onThemeToggle: () -> Unit
+) {
+
     val viewModel: MainViewModel = viewModel()
 
-    // --- États et Logique UI ---
     var isFilterDrawerOpen by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     val scope = rememberCoroutineScope()
 
-    // Liste des catégories pour le sélecteur et le filtre
     val categories = listOf("Tous", "Sport", "Réunion", "Culture", "Forum", "Tournoi", "Atelier", "Autre")
-
-    // Pour l'appel complet au FilterContent, nous avons besoin de jours factices
     val dummyDays = listOf("Tous")
 
-    // Détermination de l'état du filtre (pour le badge)
     val isFilterActive = remember(viewModel.searchQuery, viewModel.selectedType, viewModel.startDateStr, viewModel.endDateStr) {
         viewModel.searchQuery.isNotBlank() ||
                 viewModel.selectedType != "Tous" ||
@@ -57,11 +51,14 @@ fun EventsScreen(onLogout: () -> Unit) {
     }
 
     if (viewModel.isAddingEvent) {
+
         AddEventScreen(
-            onSave = { event -> viewModel.addEvent(event) },
+            onSave = { viewModel.addEvent(it) },
             onCancel = { viewModel.isAddingEvent = false }
         )
+
     } else {
+
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             floatingActionButton = {
@@ -74,6 +71,7 @@ fun EventsScreen(onLogout: () -> Unit) {
                 }
             }
         ) { innerPadding ->
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -81,20 +79,20 @@ fun EventsScreen(onLogout: () -> Unit) {
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // --- LIGNE D'EN-TÊTE ---
+
+                // En-tête
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Logo et Titre
+
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+
                         Image(
                             painter = painterResource(id = R.drawable.academia_icon),
                             contentDescription = "Logo",
-                            modifier = Modifier
-                                .size(40.dp)
-                                .padding(end = 8.dp)
+                            modifier = Modifier.size(40.dp).padding(end = 8.dp)
                         )
 
                         Text(
@@ -103,9 +101,8 @@ fun EventsScreen(onLogout: () -> Unit) {
                         )
                     }
 
-                    // Actions (Filtre + Déconnexion)
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Bouton de filtre avec badge si filtre actif
+
                         BadgedBox(
                             badge = {
                                 if (isFilterActive) {
@@ -114,35 +111,32 @@ fun EventsScreen(onLogout: () -> Unit) {
                             }
                         ) {
                             IconButton(onClick = { isFilterDrawerOpen = true }) {
-                                Icon(
-                                    imageVector = Icons.Default.FilterList,
-                                    contentDescription = "Ouvrir les filtres",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
+                                Icon(Icons.Default.FilterList, "Filtres", tint = MaterialTheme.colorScheme.primary)
                             }
                         }
 
-                        // Bouton de déconnexion
-                        IconButton(onClick = onLogout) {
+                        IconButton(onClick = onThemeToggle) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                                contentDescription = "Se déconnecter",
+                                imageVector = if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                contentDescription = "Basculer thème",
                                 tint = MaterialTheme.colorScheme.primary
                             )
+                        }
+
+                        IconButton(onClick = onLogout) {
+                            Icon(Icons.AutoMirrored.Filled.ExitToApp, "Déconnexion", tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
 
                 HorizontalDivider()
 
-                // --- SÉLECTEUR DE CATÉGORIES (Carrousel) ---
                 CategorySelector(
                     categories = categories,
                     selectedType = viewModel.selectedType,
                     onTypeSelected = { viewModel.selectedType = it }
                 )
 
-                // 5. LA LISTE
                 WeeklySchedule(
                     week = viewModel.filteredEvents,
                     modifier = Modifier.weight(1f)
@@ -151,22 +145,18 @@ fun EventsScreen(onLogout: () -> Unit) {
         }
     }
 
-    // 3. AFFICHAGE DU TIROIR DE FILTRE EN MODAL BOTTOM SHEET
     if (isFilterDrawerOpen) {
+
         ModalBottomSheet(
-            onDismissRequest = {
-                isFilterDrawerOpen = false
-            },
+            onDismissRequest = { isFilterDrawerOpen = false },
             sheetState = sheetState
         ) {
-            // APPEL CORRIGÉ ET COMPLET DE FILTERCONTENT
+
             FilterContent(
-                // Arguments requis par la signature complète (même si non utilisés dans le VM pour le filtre de jour)
                 days = dummyDays,
                 selectedDay = "Tous",
-                onDaySelected = { /* No-op */ },
+                onDaySelected = {},
 
-                // Arguments réels
                 types = categories,
                 query = viewModel.searchQuery,
                 onQueryChanged = { viewModel.searchQuery = it },
@@ -179,10 +169,9 @@ fun EventsScreen(onLogout: () -> Unit) {
 
                 onClearFilters = { viewModel.clearFilters() },
                 onCloseDrawer = {
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            isFilterDrawerOpen = false
-                        }
+                    scope.launch {
+                        sheetState.hide()
+                        isFilterDrawerOpen = false
                     }
                 }
             )
@@ -190,29 +179,27 @@ fun EventsScreen(onLogout: () -> Unit) {
     }
 }
 
-// --- COMPOSANT : SÉLECTEUR DE CATÉGORIES ---
 @Composable
 fun CategorySelector(
     categories: List<String>,
     selectedType: String,
     onTypeSelected: (String) -> Unit
 ) {
+
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(horizontal = 0.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+
         items(categories) { type ->
-            val isSelected = type == selectedType
+
+            val selected = type == selectedType
 
             FilterChip(
-                selected = isSelected,
+                selected = selected,
                 onClick = { onTypeSelected(type) },
                 label = {
-                    Text(
-                        text = type,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                    )
+                    Text(type, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
                 },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primary,
@@ -220,10 +207,7 @@ fun CategorySelector(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                     labelColor = MaterialTheme.colorScheme.onSurface
                 ),
-                border = if (isSelected) null else BorderStroke(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outline
-                )
+                border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             )
         }
     }
