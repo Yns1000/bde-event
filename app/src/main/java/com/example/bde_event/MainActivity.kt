@@ -58,7 +58,8 @@ class MainActivity : ComponentActivity() {
                             selectedType = viewModel.selectedType,
                             onTypeSelected = { viewModel.selectedType = it },
                             filtersVisible = viewModel.filtersVisible,
-                            onToggleFilters = { viewModel.filtersVisible = !viewModel.filtersVisible }
+                            onToggleFilters = { viewModel.filtersVisible = !viewModel.filtersVisible },
+                            onClearFilters = { viewModel.clearFilters() } // CONNEXION DE LA NOUVELLE FONCTION
                         )
 
                         // Liste des événements filtrés

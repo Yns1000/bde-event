@@ -12,8 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset // Import pour la correction
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +35,8 @@ fun FilterBarMobile(
     selectedType: String,
     onTypeSelected: (String) -> Unit,
     filtersVisible: Boolean,
-    onToggleFilters: () -> Unit
+    onToggleFilters: () -> Unit,
+    onClearFilters: () -> Unit
 ) {
     var typeExpanded by remember { mutableStateOf(false) }
 
@@ -39,12 +44,31 @@ fun FilterBarMobile(
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
 
+    // DÉTERMINER SI UN FILTRE EST ACTIF
+    val isFilterActive = remember(query, selectedType, startDateStr, endDateStr) {
+        query.isNotBlank() || selectedType != "Tous" || startDateStr.isNotBlank() || endDateStr.isNotBlank()
+    }
+
+    // FONCTION UTILITAIRE POUR CONVERTIR "AAAA-MM-JJ" EN MILLISECONDES (CORRIGÉE)
+    fun dateToMillis(dateStr: String): Long? {
+        if (dateStr.isBlank()) return null
+        return try {
+            // Utilise l'offset UTC pour garantir que la date sélectionnée est à minuit UTC
+            LocalDate.parse(dateStr, DateTimeFormatter.ISO_LOCAL_DATE)
+                .atStartOfDay()
+                .toInstant(ZoneOffset.UTC) // CORRECTION APPLIQUÉE ICI
+                .toEpochMilli()
+        } catch (e: DateTimeParseException) {
+            null
+        }
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
-        // Toggle Bouton
+        // Toggle Bouton (toujours en haut à droite)
         TextButton(
             onClick = onToggleFilters,
             modifier = Modifier.align(Alignment.End)
@@ -73,11 +97,11 @@ fun FilterBarMobile(
             // Champ Date de début
             OutlinedTextField(
                 value = startDateStr,
-                onValueChange = {}, // On bloque l'écriture manuelle
-                readOnly = true,    // Bloque le clavier et le stylet
+                onValueChange = onStartDateChanged,
+                readOnly = true,
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { showStartDatePicker = true }, // Le clic ouvre le calendrier
+                    .clickable { showStartDatePicker = true },
                 placeholder = { Text("Début") },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
@@ -91,7 +115,7 @@ fun FilterBarMobile(
             // Champ Date de fin
             OutlinedTextField(
                 value = endDateStr,
-                onValueChange = {},
+                onValueChange = onEndDateChanged,
                 readOnly = true,
                 modifier = Modifier
                     .weight(1f)
@@ -138,12 +162,25 @@ fun FilterBarMobile(
                 }
             }
         }
+
+        // BOUTON EFFACER LES FILTRES (en bas et centré)
+        Button(
+            onClick = onClearFilters,
+            enabled = isFilterActive,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+        ) {
+            Text("Effacer les filtres")
+        }
     }
 
     // --- DIALOGUES CALENDRIER ---
 
     if (showStartDatePicker) {
+        val initialTimestamp = dateToMillis(startDateStr)
         MyDatePickerDialog(
+            initialSelectedDateMillis = initialTimestamp,
             onDateSelected = { date ->
                 onStartDateChanged(date ?: "")
                 showStartDatePicker = false
@@ -153,7 +190,9 @@ fun FilterBarMobile(
     }
 
     if (showEndDatePicker) {
+        val initialTimestamp = dateToMillis(endDateStr)
         MyDatePickerDialog(
+            initialSelectedDateMillis = initialTimestamp,
             onDateSelected = { date ->
                 onEndDateChanged(date ?: "")
                 showEndDatePicker = false
@@ -167,10 +206,14 @@ fun FilterBarMobile(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyDatePickerDialog(
+    initialSelectedDateMillis: Long? = null,
     onDateSelected: (String?) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val datePickerState = rememberDatePickerState()
+    // Initialise l'état du DatePicker avec la valeur passée
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = initialSelectedDateMillis
+    )
 
     DatePickerDialog(
         onDismissRequest = onDismiss,
@@ -184,6 +227,8 @@ fun MyDatePickerDialog(
                         .toLocalDate()
                         .format(DateTimeFormatter.ISO_LOCAL_DATE)
                     onDateSelected(date)
+                } else {
+                    onDateSelected(null)
                 }
                 onDismiss()
             }) {

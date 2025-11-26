@@ -36,6 +36,15 @@ class MainViewModel : ViewModel() {
     var endDateStr by mutableStateOf("")
     var filtersVisible by mutableStateOf(false)
 
+    // NOUVELLE FONCTION : Réinitialise tous les filtres
+    fun clearFilters() {
+        searchQuery = ""
+        selectedType = "Tous"
+        startDateStr = ""
+        endDateStr = ""
+        // Note: filtersVisible n'est pas réinitialisé ici, car l'utilisateur veut souvent les garder visibles après un clear
+    }
+
     // ✅ 3. LOGIQUE DE FILTRAGE
     val filteredEvents: Map<String, List<Event>>
         get() {
