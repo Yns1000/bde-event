@@ -15,6 +15,9 @@ import com.example.bde_event.MainViewModel
 import com.example.bde_event.ui.components.AddEventScreen
 import com.example.bde_event.ui.components.FilterBarMobile
 import com.example.bde_event.ui.components.WeeklySchedule
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.example.bde_event.R // Important pour accéder à R.drawable
 
 @Composable
 fun     EventsScreen(onLogout: () -> Unit) {
@@ -48,20 +51,31 @@ fun     EventsScreen(onLogout: () -> Unit) {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // 3. LE DESIGN DE TON POTE : Titre + Bouton Déconnexion
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Événements",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
-                    )
+                    // On groupe le Logo et le Titre ensemble dans une Row interne pour qu'ils soient collés à gauche
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // --- AJOUT DU LOGO PETIT ---
+                        Image(
+                            painter = painterResource(id = R.drawable.academia_icon),
+                            contentDescription = "Logo",
+                            modifier = Modifier
+                                .size(40.dp) // Taille plus petite pour l'en-tête
+                                .padding(end = 8.dp) // Un peu d'espace avant le texte
+                        )
+                        // ---------------------------
 
-                    IconButton(onClick = { onLogout() }) {
-                        // Attention : Icons.AutoMirrored nécessite une version récente de Compose
-                        // Si ça souligne en rouge, remplace par Icons.Default.ExitToApp
+                        Text(
+                            text = "Événements",
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                    }
+
+                    // Bouton de déconnexion (reste à droite)
+                    IconButton(onClick = onLogout) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                             contentDescription = "Se déconnecter",
