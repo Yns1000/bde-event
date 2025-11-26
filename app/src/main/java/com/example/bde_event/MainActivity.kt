@@ -26,10 +26,24 @@ class MainActivity : ComponentActivity() {
                 // On définit les routes de navigation
                 NavHost(navController = navController, startDestination = "login_screen") {
 
-                    // Route pour l'écran de connexion
-                    composable("login_screen") {
-                        LoginScreen(navController = navController)
-                    }
+                        // Barre de filtres (connectée au ViewModel)
+                        FilterBarMobile(
+                            days = listOf("Tous"),
+                            types = listOf("Tous", "Sport", "Réunion", "Culture", "Forum", "Tournoi", "Atelier"),
+                            query = viewModel.searchQuery,
+                            onQueryChanged = { viewModel.searchQuery = it },
+                            selectedDay = "Tous",
+                            onDaySelected = { },
+                            startDateStr = viewModel.startDateStr,
+                            onStartDateChanged = { viewModel.startDateStr = it },
+                            endDateStr = viewModel.endDateStr,
+                            onEndDateChanged = { viewModel.endDateStr = it },
+                            selectedType = viewModel.selectedType,
+                            onTypeSelected = { viewModel.selectedType = it },
+                            filtersVisible = viewModel.filtersVisible,
+                            onToggleFilters = { viewModel.filtersVisible = !viewModel.filtersVisible },
+                            onClearFilters = { viewModel.clearFilters() } // CONNEXION DE LA NOUVELLE FONCTION
+                        )
 
                     // Route pour l'écran principal (événements)
                     composable("events_screen") {
