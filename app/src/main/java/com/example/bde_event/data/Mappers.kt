@@ -3,42 +3,38 @@ package com.example.bde_event.data
 import android.annotation.SuppressLint
 import com.example.bde_event.Event
 import com.example.bde_event.data.model.EventDto
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
+// Fonction pour convertir l'Event de l'API (Généré) vers ton Event UI
 fun EventDto.toDomain(): Event {
-    // 1. On parse la Date de Début (qui inclut l'heure maintenant !)
-    // On essaie de parser un format ISO (ex: 2025-11-26T14:00:00)
-    val startDateTime = try {
-        LocalDateTime.parse(this.date) // Parse le format par défaut ISO-8601
+
+    // La date arrive souvent sous forme de String depuis le généré
+    val parsedDate = try {
+        // Adapte selon ce que le générateur a produit (String ou Date)
+        // Si c'est une String :
+        if (this.date != null) LocalDateTime.parse(this.date, DateTimeFormatter.ISO_DATE_TIME) else LocalDateTime.now()
     } catch (e: Exception) {
-        // Si ça échoue (format SQL classique avec espace), on essaie un autre format
-        try {
-            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-            LocalDateTime.parse(this.date, formatter)
-        } catch (e2: Exception) {
-            LocalDateTime.now() // Secours
-        }
+        LocalDateTime.now()
     }
 
-    // 2. On parse la Durée (ex: "02:00")
+    // Gestion de la durée (String "02:00:00" -> Time)
     val durationTime = try {
-        LocalTime.parse(this.duration)
+        LocalTime.parse(this.duration ?: "01:00:00")
     } catch (e: Exception) {
-        LocalTime.of(1, 0) // 1h par défaut
+        LocalTime.of(1, 0)
     }
 
-    // 3. On CALCULE la fin
-    val endDateTime = startDateTime
+    // Calcul de la fin
+    val endDateTime = parsedDate
         .plusHours(durationTime.hour.toLong())
         .plusMinutes(durationTime.minute.toLong())
 
-    // 4. On formate l'affichage "HH:mm - HH:mm"
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-    val displayTime = "${startDateTime.format(timeFormatter)} - ${endDateTime.format(timeFormatter)}"
+    val displayTime = "${parsedDate.format(timeFormatter)} - ${endDateTime.format(timeFormatter)}"
 
-    // 5. Gestion du Type (ton mock)
     val typeName = when(this.idType) {
         1 -> "Sport"
         2 -> "Réunion"
@@ -48,17 +44,18 @@ fun EventDto.toDomain(): Event {
     }
 
     return Event(
-        id = this.id,
-        title = this.name,
-        startDate = startDateTime.toLocalDate(), // On extrait juste la date pour le tri
-        endDate = endDateTime.toLocalDate(),     // Si ça finit le lendemain, on le saura !
-        time = displayTime,                      // "14:00 - 16:00" généré automatiquement
-        location = this.location ?: "Lieu à définir",
+        id = this.id?.toInt() ?: 0, // Le générateur met souvent des Long ou null
+        title = this.name ?: "Sans titre",
+        startDate = parsedDate.toLocalDate(),
+        endDate = endDateTime.toLocalDate(),
+        time = displayTime,
+        location = this.description, // On utilise description comme lieu si pas de champ lieu
         type = typeName,
         description = this.description
     )
 }
 
+// Fonction inverse : UI -> API (Généré)
 @SuppressLint("DefaultLocale")
 fun Event.toDto(): EventDto {
     // 1. On découpe ton affichage "14:00 - 16:00" pour retrouver les heures
@@ -70,9 +67,9 @@ fun Event.toDto(): EventDto {
     val fullDateIso = "${this.startDate}T$startTimeStr:00"
 
     // 3. On recalcule la DURÉE (fin - début)
-    val start = java.time.LocalTime.parse(startTimeStr)
-    val end = java.time.LocalTime.parse(endTimeStr)
-    val durationObj = java.time.Duration.between(start, end)
+    val start = LocalTime.parse(startTimeStr)
+    val end = LocalTime.parse(endTimeStr)
+    val durationObj = Duration.between(start, end)
     // Format "HH:mm" (ex: 02:00)
     val durationStr = String.format("%02d:%02d", durationObj.toHours(), durationObj.toMinutes() % 60)
 
@@ -85,14 +82,16 @@ fun Event.toDto(): EventDto {
         else -> 5
     }
 
+    // Création de l'objet généré
+    // Note : Les noms des paramètres dépendent de ce que le générateur a créé
     return EventDto(
-        id = this.id,
+        id = this.id.toLong(),
         name = this.title,
         date = fullDateIso,
-        duration = durationStr,
-        description = this.description,
-        location = this.location,
+        duration = durationStr, // 
         idType = typeId,
-        idUser = 1 // ID utilisateur par défaut
+        idUser = 1, // Valeur par défaut
+        description = this.description,
+        location = this.location
     )
 }

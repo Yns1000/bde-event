@@ -1,9 +1,9 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.compose")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.openapi)
 }
-
 
 android {
     namespace = "com.example.bde_event"
@@ -35,10 +35,32 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        getByName("main") {
+            java.srcDir(layout.buildDirectory.dir("generated/api/src/main/kotlin"))
+        }
+    }
+}
+
+openApiGenerate {
+    generatorName.set("kotlin")
+
+    inputSpec.set("$rootDir/app/openapi/academy.swagger.yaml")
+
+    outputDir.set(layout.buildDirectory.dir("generated/api").get().asFile.absolutePath)
+
+    apiPackage.set("com.example.bde_event.api.services")
+    modelPackage.set("com.example.bde_event.api.models")
+
+    configOptions.set(mapOf(
+        "library" to "jvm-retrofit2",
+        "useCoroutines" to "true",
+        "serializationLibrary" to "moshi",
+        "dateLibrary" to "java8" // Important pour avoir LocalDateTime
+    ))
 }
 
 dependencies {
-
     implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
@@ -49,10 +71,19 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended:1.5.0")
-    implementation("androidx.navigation:navigation-runtime-ktx:2.9.6")
-    // Réseau et conversion JSON
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("androidx.navigation:navigation-compose:2.7.6")
+
+
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.moshi)
+    implementation(libs.moshi.kotlin)
+    implementation(libs.moshi.adapters)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+    implementation(libs.retrofit.converter.scalars)
+
+    // implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -60,6 +91,4 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-
-    implementation("androidx.navigation:navigation-compose:2.8.0") // Ou une version récente compatible
 }

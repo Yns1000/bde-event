@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.bde_event.Event
+import com.example.bde_event.data.model.TypeOfEventDto
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -20,13 +21,14 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEventScreen(
-    onSave: (Event) -> Unit,
+    types: List<TypeOfEventDto>,                     // nouvelle liste de types fournie par le ViewModel
+    onSave: (Event, Int) -> Unit,                    // onSave retourne aussi l'id du type sélectionné
     onCancel: () -> Unit
 ) {
     // États du formulaire
     var title by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf("Réunion") }
+    var type by remember { mutableStateOf(types.firstOrNull()?.name ?: "Réunion") }
 
     var description by remember { mutableStateOf("") }
 
@@ -41,7 +43,7 @@ fun AddEventScreen(
     var showEndTimePicker by remember { mutableStateOf(false) }
 
     var typeExpanded by remember { mutableStateOf(false) }
-    val types = listOf("Sport", "Réunion", "Culture", "Forum", "Atelier", "Autre")
+    val typesNames = if (types.isNotEmpty()) types.map { it.name } else listOf("Sport", "Réunion", "Culture", "Forum", "Atelier", "Autre")
 
     Scaffold(
         topBar = {
@@ -62,7 +64,6 @@ fun AddEventScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 1. Titre
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -72,7 +73,6 @@ fun AddEventScreen(
                 shape = RoundedCornerShape(16.dp)
             )
 
-            // 2. Lieu
             OutlinedTextField(
                 value = location,
                 onValueChange = { location = it },
@@ -82,7 +82,6 @@ fun AddEventScreen(
                 shape = RoundedCornerShape(16.dp)
             )
 
-            // 3. Type
             ExposedDropdownMenuBox(
                 expanded = typeExpanded,
                 onExpandedChange = { typeExpanded = !typeExpanded }
@@ -100,13 +99,12 @@ fun AddEventScreen(
                     expanded = typeExpanded,
                     onDismissRequest = { typeExpanded = false }
                 ) {
-                    types.forEach { t ->
+                    typesNames.forEach { t ->
                         DropdownMenuItem(text = { Text(t) }, onClick = { type = t; typeExpanded = false })
                     }
                 }
             }
 
-            // 4. Date
             OutlinedTextField(
                 value = dateStr,
                 onValueChange = {},
@@ -124,7 +122,6 @@ fun AddEventScreen(
                 }
             )
 
-            // 5. Heures
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -169,14 +166,13 @@ fun AddEventScreen(
                 onValueChange = { description = it },
                 placeholder = { Text("Description (optionnel)") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 3, // On permet plusieurs lignes
+                minLines = 3,
                 maxLines = 5,
                 shape = RoundedCornerShape(16.dp)
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Bouton Valider
             Button(
                 onClick = {
                     if (title.isNotBlank() && dateStr.isNotBlank() && startTimeStr.isNotBlank() && endTimeStr.isNotBlank()) {
@@ -194,7 +190,10 @@ fun AddEventScreen(
                                 type = type,
                                 description = description
                             )
-                            onSave(newEvent)
+
+                            // récupérer l'id du type sélectionné (fallback 0 si introuvable)
+                            val selectedTypeId = types.find { it.name == type }?.id ?: 0
+                            onSave(newEvent, selectedTypeId)
                         } catch (e: Exception) {
                             // Gérer erreur
                         }
@@ -208,7 +207,6 @@ fun AddEventScreen(
         }
     }
 
-    // --- DIALOGUES ---
     if (showDatePicker) {
         MyDatePickerDialog(
             onDateSelected = { d -> dateStr = d ?: ""; showDatePicker = false },
@@ -233,7 +231,7 @@ fun AddEventScreen(
     }
 }
 
-// ... Ton composant MyTimePickerDialog reste en bas, inchangé ...
+// MyTimePickerDialog inchangé
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyTimePickerDialog(
@@ -247,7 +245,6 @@ fun MyTimePickerDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = {
-                // Formater l'heure en HH:mm (ex: 09:05)
                 val localTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
                 val formatter = DateTimeFormatter.ofPattern("HH:mm")
                 onTimeSelected(localTime.format(formatter))

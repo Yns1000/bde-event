@@ -1,25 +1,40 @@
 package com.example.bde_event
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.bde_event.data.EventRepository
+import com.example.bde_event.api.models.Event as ApiEvent
+import com.example.bde_event.data.ApiClient
+import com.example.bde_event.data.toDto
+import com.example.bde_event.data.model.EventDto
+import com.example.bde_event.data.model.TypeOfEventDto
+import com.example.bde_event.data.repository.EventRepository
+import com.example.bde_event.data.repository.EventRepositoryImpl
+import com.example.bde_event.data.source.LocalDataSourceImpl
+import com.example.bde_event.data.source.RemoteDataSourceImpl
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
 class MainViewModel : ViewModel() {
 
-    // 1. On connecte le Repository (notre source de données)
-    private val repository = EventRepository()
+    private val apiService = ApiClient.eventApi
 
-    // 2. On stocke la liste complète reçue du "serveur" (Source de vérité)
+    private val remoteDataSource = RemoteDataSourceImpl(apiService)
+    private val localDataSource = LocalDataSourceImpl()
+
+    private val repository: EventRepository = EventRepositoryImpl(remoteDataSource, localDataSource)
+
     private var allEvents by mutableStateOf<List<Event>>(emptyList())
 
-    // Variables d'état pour les filtres (inchangées)
+    var types by mutableStateOf<List<TypeOfEventDto>>(emptyList())
+        private set
+
     var searchQuery by mutableStateOf("")
     var selectedType by mutableStateOf("Tous")
     var startDateStr by mutableStateOf("")
@@ -27,20 +42,89 @@ class MainViewModel : ViewModel() {
     var filtersVisible by mutableStateOf(false)
     var isAddingEvent by mutableStateOf(false)
 
-    // Au lancement, on charge les données
     init {
+        loadTypes()
         loadEvents()
     }
 
-    // Fonction pour charger les événements depuis le Repository
-    private fun loadEvents() {
+    private fun loadTypes() {
         viewModelScope.launch {
-            // C'est ici que la magie opère : ça récupère les données simulées (et bientôt l'API)
-            allEvents = repository.getAllEvents()
+            try {
+                types = ApiClient.apiService.getTypes()
+            } catch (e: Exception) {
+                Log.w("MainViewModel", "Impossible de charger les types d'événements: ${e.message}")
+                types = emptyList()
+            }
         }
     }
 
-    // Réinitialiser les filtres
+    private fun loadEvents() {
+        viewModelScope.launch {
+            allEvents = repository.getEvents()
+        }
+    }
+
+    fun addEvent(newEvent: Event) {
+        addEvent(newEvent, 0)
+    }
+
+    fun addEvent(newEvent: Event, typeId: Int) {
+        viewModelScope.launch {
+            try {
+                val dto = newEvent.toDto().copy(idType = typeId)
+
+                localDataSource.addEvent(dto)
+
+                val parsedDate = try {
+                    LocalDate.parse(dto.date)
+                } catch (_: Exception) {
+                    LocalDate.now()
+                }
+
+                val apiEvent = ApiEvent(
+                    id = dto.id,
+                    name = dto.name,
+                    idType = dto.idType,
+                    idUser = dto.idUser,
+                    date = parsedDate,
+                    duration = dto.duration,
+                    description = dto.description,
+                    lieu = newEvent.location ?: ""
+                )
+
+                try {
+                    remoteDataSource.addEvent(apiEvent)
+                    Log.d("MainViewModel", "Événement envoyé au serveur avec succès")
+
+                    val remoteEvents = remoteDataSource.getEvents()
+                    val eventDtos = remoteEvents.map { event ->
+                        EventDto(
+                            id = event.id ?: 0L,
+                            name = event.name ?: "",
+                            date = event.date?.format(DateTimeFormatter.ISO_DATE) ?: "",
+                            duration = event.duration ?: "",
+                            description = event.description,
+                            location = event.lieu,
+                            idType = event.idType ?: 0,
+                            idUser = event.idUser ?: 0
+                        )
+                    }
+                    localDataSource.saveEvents(eventDtos)
+
+                } catch (e: Exception) {
+                    Log.w("MainViewModel", "Échec envoi distant : ${e.message}")
+                }
+
+                loadEvents()
+                isAddingEvent = false
+
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "Erreur lors de l'ajout d'événement : ${e.message}", e)
+                isAddingEvent = false
+            }
+        }
+    }
+
     fun clearFilters() {
         searchQuery = ""
         selectedType = "Tous"
@@ -48,56 +132,32 @@ class MainViewModel : ViewModel() {
         endDateStr = ""
     }
 
-    // 3. Logique de filtrage ET de regroupement
-    // L'écran attend une Map<String, List<Event>>, donc on transforme la liste ici
     val filteredEvents: Map<String, List<Event>>
         get() {
-            // A. Préparation des filtres
             val startFilter = try { if (startDateStr.isBlank()) null else LocalDate.parse(startDateStr) } catch (_: Exception) { null }
             val endFilter = try { if (endDateStr.isBlank()) null else LocalDate.parse(endDateStr) } catch (_: Exception) { null }
             val lowerQuery = searchQuery.lowercase()
 
-            // B. Filtrage de la liste brute
             val filteredList = allEvents.filter { ev ->
                 val typeOk = selectedType == "Tous" || ev.type.equals(selectedType, true)
-
                 val dateOk = when {
                     startFilter == null && endFilter == null -> true
                     startFilter != null && endFilter == null -> !ev.endDate.isBefore(startFilter)
                     startFilter == null && endFilter != null -> !ev.startDate.isAfter(endFilter)
                     else -> !(ev.endDate.isBefore(startFilter!!) || ev.startDate.isAfter(endFilter!!))
                 }
-
                 val textOk = lowerQuery.isEmpty() ||
                         ev.title.lowercase().contains(lowerQuery) ||
-                        (ev.location?.lowercase()?.contains(lowerQuery) ?: false)
+                        (ev.description?.lowercase()?.contains(lowerQuery) == true)
 
                 typeOk && dateOk && textOk
             }
 
-            // C. Regroupement par jour de la semaine (Ex: "Lundi", "Mardi")
-            // On trie d'abord par date pour que l'ordre soit correct (Lundi avant Mardi)
             return filteredList
                 .sortedBy { it.startDate }
                 .groupBy { event ->
-                    // On transforme la date en nom de jour (ex: 2025-11-10 -> "Lundi")
-                    event.startDate.dayOfWeek
-                        .getDisplayName(TextStyle.FULL, Locale.FRENCH)
-                        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+                    event.startDate.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.FRENCH)
+                        .replaceFirstChar { it.uppercase() }
                 }
         }
-
-    // 4. Ajouter un événement (via le Repository)
-    fun addEvent(newEvent: Event) {
-        viewModelScope.launch {
-            // On demande au repo d'ajouter l'événement
-            val success = repository.addEvent(newEvent)
-
-            if (success) {
-                // Si ça a marché, on recharge la liste pour voir le nouvel événement
-                loadEvents()
-                isAddingEvent = false
-            }
-        }
-    }
 }

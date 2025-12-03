@@ -1,0 +1,526 @@
+openapi: 3.0.2
+info:
+  title: Swagger Universitary - OpenAPI 3.0
+  description: |-
+    Hello this is my description
+    license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+  - url: TODO
+tags:
+  - name: event
+    description: Everything about the academic events
+  - name: email
+    description: Operations about registered emails
+  - name: user
+    description: Operations about users
+  - name: type
+    description: Operations about event types
+paths:
+  /event:
+    post:
+      tags:
+        - event
+      summary: Create an event.
+      operationId: createEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
+    get:
+      tags:
+        - event
+      summary: Get events.
+      operationId: getEvents
+      parameters:
+        - in: query
+          name: id
+          schema: 
+            type: integer
+          required: false
+        - in: query
+          name: name
+          schema: 
+            type: string
+          required: false
+        - in: query
+          name: before
+          schema: 
+            type: string
+          required: false
+        - in: query
+          name: after
+          schema: 
+            type: string
+          required: false
+        - in: query
+          name: date
+          schema: 
+            type: string
+          required: false
+        - in: query
+          name: type
+          schema: 
+            type: string
+          required: false
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '400':
+          description: Invalid input
+    delete:
+      tags:
+        - event
+      summary: Delete an event.
+      operationId: deleteEvent
+      parameters:
+        - in: query
+          name: id
+          schema: 
+            type: integer
+          required: false
+        - in: query
+          name: name
+          schema: 
+            type: string
+          required: false 
+      responses:
+        '200':
+          description: Succesful operation
+        '404':
+          description: Event not found
+    put:
+      tags:
+        - event
+      summary: Update an Event.
+      operationId: updateEvent
+      parameters:
+      - in: query
+        name: id
+        schema:
+          type: string
+        required: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
+  /email:
+    post:
+      tags:
+        - email
+      summary: Add a new email to the list.
+      description: Add a new email to the list.
+      operationId: addEmail
+      requestBody:
+        description: Create a new email in the list
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/email'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/email'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/email'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/email'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/email'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - email 
+      summary: Get all emails.
+      description: Get all emails in the list.
+      operationId: getEmails
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/email'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/email'
+        '400':
+          description: Invalid input
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags:
+        - email
+      summary: Delete an existing email.
+      description: Update an existing email by Id.
+      operationId: deleteEmail
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/email'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/email'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Email not found
+        '422':
+          description: Validation exception
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /user: 
+    post:
+      tags:
+        - user
+      summary: Add a new user to the list.
+      description: Add a new user to the list.
+      operationId: addUser
+      requestBody:
+        description: Create a new user in the list
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/user'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/user'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/user'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - user 
+      summary: Get all users.
+      description: Get all users in the list.
+      operationId: getUsers
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user'
+        '400':
+          description: Invalid input
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags:
+        - user
+      summary: Delete an existing user.
+      description: Update an existing user by Id.
+      operationId: deleteUser
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/user'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: User not found
+        '422':
+          description: Validation exception
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /user/login: 
+      post: 
+        tags: 
+          - user 
+        summary: User login.
+        description: Authenticate a user with username and password.
+        operationId: loginUser
+        requestBody: 
+          description: User credentials
+          content: 
+            application/json: 
+              schema: 
+                type: object
+                properties: 
+                  username: 
+                    type: string
+                  password: 
+                    type: string
+        responses: 
+          '200': 
+            description: Successful login
+            content: 
+              application/json: 
+                schema: 
+                  $ref: '#/components/schemas/user'
+          '400': 
+            description: Invalid username/password supplied
+          default:
+            description: Unexpected error
+            content: 
+              application/json: 
+                schema: 
+                  $ref: "#/components/schemas/Error"    
+  /type:
+    post:
+      tags:
+        - type
+      summary:
+        Add a new type of event.
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/user'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Type'
+        '400':
+          description: Invalid input
+    get:
+      tags:
+        - type
+      summary:
+        Get types.
+      description: Get a type
+      operationId: getType
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: name
+          schema:
+            type: string
+          required: false
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Type'
+        '400':
+          description: Invalid input
+    delete:
+      tags:
+        - type
+      summary:
+        Delete a type of event.
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Succesful operation
+        '404':
+          description: Event not found
+components:
+  schemas:
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: "Soirée Étudiante"
+        idType:
+          type: integer
+          format: int32
+          example: 2
+        idUser:
+          type: integer
+          format: int32
+          example: 5
+        date:
+          type: string
+          format: date
+          example: "2023-10-15T20:00:00Z"
+        duration:
+          type: string
+          format: time
+          example: "02:00:00"
+        description:
+          type: string
+          example: "Un événement pour tous les étudiants."
+        lieu:
+          type: string
+          example: "Amphithéâtre A"
+    user:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        username:
+          type: string
+          example: theUser
+        name:
+          type: string
+          example: John
+        password:
+          type: string
+          example: '12345'
+      xml:
+        name: user
+    email:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        email:
+          type: string
+          example: meow.man@test.fr
+      xml:
+        name: email
+    Type:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 1
+        name:
+          type: string
+          example: Forum
+        description:
+          type: string
+          example: Ce qui implique un forum.
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int64

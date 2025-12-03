@@ -1,14 +1,14 @@
 package com.example.bde_event.data.model
 
-import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.Json
 
 data class TypeOfEventDto(
-    @SerializedName("id")
+    @Json(name = "id")
     val id: Int,
 
-    @SerializedName("name")
+    @Json(name = "name")
     val name: String,
 
-    @SerializedName("description")
+    @Json(name = "description")
     val description: String?
 )

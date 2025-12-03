@@ -1,8 +1,10 @@
+// kotlin
+// File: app/src/main/java/com/example/bde_event/ui/screens/EventsScreen.kt
 package com.example.bde_event.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp // Si ça bug, met Icons.Default.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -17,23 +19,24 @@ import com.example.bde_event.ui.components.FilterBarMobile
 import com.example.bde_event.ui.components.WeeklySchedule
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
-import com.example.bde_event.R // Important pour accéder à R.drawable
+import com.example.bde_event.R
 
 @Composable
-fun     EventsScreen(onLogout: () -> Unit) {
+fun EventsScreen(onLogout: () -> Unit) {
     val viewModel: MainViewModel = viewModel()
 
-    // 1. TA LOGIQUE : Si on ajoute un événement, on affiche le formulaire
     if (viewModel.isAddingEvent) {
         AddEventScreen(
-            onSave = { event -> viewModel.addEvent(event) },
+            types = viewModel.types, // on utilise la liste réellement chargée
+            onSave = { event, typeId ->
+                // Appel de la nouvelle méthode qui prend en compte l'id du type
+                viewModel.addEvent(event, typeId)
+            },
             onCancel = { viewModel.isAddingEvent = false }
         )
     } else {
-        // 2. SINON : On affiche l'écran principal (Design de ton pote + Ton FAB)
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            // TA LOGIQUE : Le bouton flottant pour ajouter
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = { viewModel.isAddingEvent = true },
@@ -56,17 +59,14 @@ fun     EventsScreen(onLogout: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // On groupe le Logo et le Titre ensemble dans une Row interne pour qu'ils soient collés à gauche
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // --- AJOUT DU LOGO PETIT ---
                         Image(
                             painter = painterResource(id = R.drawable.academia_icon),
                             contentDescription = "Logo",
                             modifier = Modifier
-                                .size(40.dp) // Taille plus petite pour l'en-tête
-                                .padding(end = 8.dp) // Un peu d'espace avant le texte
+                                .size(40.dp)
+                                .padding(end = 8.dp)
                         )
-                        // ---------------------------
 
                         Text(
                             text = "Événements",
@@ -74,7 +74,6 @@ fun     EventsScreen(onLogout: () -> Unit) {
                         )
                     }
 
-                    // Bouton de déconnexion (reste à droite)
                     IconButton(onClick = onLogout) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,
@@ -86,7 +85,6 @@ fun     EventsScreen(onLogout: () -> Unit) {
 
                 HorizontalDivider()
 
-                // 4. LES FILTRES (Ton pote a ajouté onClearFilters, on le garde)
                 FilterBarMobile(
                     days = listOf("Tous"),
                     types = listOf("Tous", "Sport", "Réunion", "Culture", "Forum", "Tournoi", "Atelier"),
@@ -102,10 +100,9 @@ fun     EventsScreen(onLogout: () -> Unit) {
                     onTypeSelected = { viewModel.selectedType = it },
                     filtersVisible = viewModel.filtersVisible,
                     onToggleFilters = { viewModel.filtersVisible = !viewModel.filtersVisible },
-                    onClearFilters = { viewModel.clearFilters() } // Si cette fonction n'existe pas dans ton ViewModel, retire cette ligne
+                    onClearFilters = { viewModel.clearFilters() }
                 )
 
-                // 5. LA LISTE
                 WeeklySchedule(
                     week = viewModel.filteredEvents,
                     modifier = Modifier.weight(1f)
