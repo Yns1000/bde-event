@@ -16,16 +16,19 @@ class MainViewModel : ViewModel() {
     // 1. On connecte le Repository (notre source de données)
     private val repository = EventRepository()
 
-    // 2. On stocke la liste complète reçue du "serveur" (Source de vérité)
-    private var allEvents by mutableStateOf<List<Event>>(emptyList())
+    // 2. On stocke la liste complète reçue du "server"
+    var allEvents by mutableStateOf<List<Event>>(emptyList())
 
-    // Variables d'état pour les filtres (inchangées)
+    // Variables d'état pour les filtres (RÉTABLIES)
     var searchQuery by mutableStateOf("")
     var selectedType by mutableStateOf("Tous")
-    var startDateStr by mutableStateOf("")
-    var endDateStr by mutableStateOf("")
+    var startDateStr by mutableStateOf("") // Rétabli
+    var endDateStr by mutableStateOf("")   // Rétabli
     var filtersVisible by mutableStateOf(false)
     var isAddingEvent by mutableStateOf(false)
+
+    // Remarque : selectedDay n'est plus nécessaire ici pour l'affichage, mais il était présent.
+    // Je le retire pour simplifier, car le carrousel de jour n'est plus là.
 
     // Au lancement, on charge les données
     init {
@@ -35,12 +38,11 @@ class MainViewModel : ViewModel() {
     // Fonction pour charger les événements depuis le Repository
     private fun loadEvents() {
         viewModelScope.launch {
-            // C'est ici que la magie opère : ça récupère les données simulées (et bientôt l'API)
             allEvents = repository.getAllEvents()
         }
     }
 
-    // Réinitialiser les filtres
+    // Réinitialiser les filtres (Rétablie)
     fun clearFilters() {
         searchQuery = ""
         selectedType = "Tous"
@@ -48,8 +50,9 @@ class MainViewModel : ViewModel() {
         endDateStr = ""
     }
 
-    // 3. Logique de filtrage ET de regroupement
-    // L'écran attend une Map<String, List<Event>>, donc on transforme la liste ici
+    // Logique utilitaire matchesDay supprimée (n'est plus utilisée).
+
+    // 3. Logique de filtrage ET de regroupement (Rétablie)
     val filteredEvents: Map<String, List<Event>>
         get() {
             // A. Préparation des filtres
@@ -59,28 +62,31 @@ class MainViewModel : ViewModel() {
 
             // B. Filtrage de la liste brute
             val filteredList = allEvents.filter { ev ->
+                // Filtre 1 : Par Type
                 val typeOk = selectedType == "Tous" || ev.type.equals(selectedType, true)
 
-                val dateOk = when {
+                // Filtre 2 : Par Plage de dates (pour le ModalBottomSheet)
+                val dateRangeOk = when {
                     startFilter == null && endFilter == null -> true
                     startFilter != null && endFilter == null -> !ev.endDate.isBefore(startFilter)
                     startFilter == null && endFilter != null -> !ev.startDate.isAfter(endFilter)
                     else -> !(ev.endDate.isBefore(startFilter!!) || ev.startDate.isAfter(endFilter!!))
                 }
 
+                // Filtre 3 : Par Texte
                 val textOk = lowerQuery.isEmpty() ||
                         ev.title.lowercase().contains(lowerQuery) ||
                         (ev.location?.lowercase()?.contains(lowerQuery) ?: false)
 
-                typeOk && dateOk && textOk
+                // Tous les filtres doivent être validés
+                typeOk && dateRangeOk && textOk
             }
 
             // C. Regroupement par jour de la semaine (Ex: "Lundi", "Mardi")
-            // On trie d'abord par date pour que l'ordre soit correct (Lundi avant Mardi)
             return filteredList
                 .sortedBy { it.startDate }
                 .groupBy { event ->
-                    // On transforme la date en nom de jour (ex: 2025-11-10 -> "Lundi")
+                    // On utilise le nom complet du jour pour le regroupement
                     event.startDate.dayOfWeek
                         .getDisplayName(TextStyle.FULL, Locale.FRENCH)
                         .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
@@ -90,11 +96,9 @@ class MainViewModel : ViewModel() {
     // 4. Ajouter un événement (via le Repository)
     fun addEvent(newEvent: Event) {
         viewModelScope.launch {
-            // On demande au repo d'ajouter l'événement
             val success = repository.addEvent(newEvent)
 
             if (success) {
-                // Si ça a marché, on recharge la liste pour voir le nouvel événement
                 loadEvents()
                 isAddingEvent = false
             }
